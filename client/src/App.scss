@@ -61,11 +61,10 @@
   color: white;
 }
 .flash.flash {
-    -webkit-box-shadow:0px 0px 124px 18px rgba(255,255,255,0.96);
-    -moz-box-shadow: 0px 0px 124px 18px rgba(255,255,255,0.96);
-    box-shadow: 0px 0px 124px 18px rgba(255,255,255,0.96);
-    transition: all 0.25s ease-in-out; 
-   
+  -webkit-box-shadow: 0px 0px 124px 18px rgba(255, 255, 255, 0.96);
+  -moz-box-shadow: 0px 0px 124px 18px rgba(255, 255, 255, 0.96);
+  box-shadow: 0px 0px 124px 18px rgba(255, 255, 255, 0.96);
+  transition: all 0.25s ease-in-out;
 }
 .red {
   background-color: red;
@@ -110,5 +109,12 @@
   position: absolute;
   top: 20px;
   right: 75px;
+  color: white;
+}
+
+.turnWrapper {
+  position: absolute;
+  left: 75px;
+  top: 20px;
   color: white;
 }

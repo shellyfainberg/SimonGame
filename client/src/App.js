@@ -15,30 +15,36 @@ const App = () => {
     score: 0,
     userPlay: false,
     userColors: [],
+    highScore: 0,
   };
   const [play, setPlay] = useState(initPlay);
   const [flashColor, setFlashColor] = useState("");
-  const [highScore, setHighScore] = useState(() => {
-    const highScoreFromStorage = localStorage.getItem("highScore");
-    if (highScoreFromStorage) {
-      return highScoreFromStorage;
-    }
-    return 0;
-  });
+
+  // const [highScore, ] = useState(() => {
+  //   const highScoreFromStorage = localStorage.getItem("highScore");
+  //   if (highScoreFromStorage) {
+  //     return highScoreFromStorage;
+  //   }
+  //   return 0;
+  // });
 
   const startHandle = () => {
     setIsOn(true);
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/", {
+    fetch("http://localhost:5000/api/status", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ isOn }),
+      body: JSON.stringify({ isOn: isOn, score: play.score }),
     })
       .then((response) => response.json())
+      .then((res) => {
+        play.score = res.score;
+        play.highScore = res.highScore;
+      })
       .catch((error) => console.log(error));
   }, [isOn]);
 
@@ -66,27 +72,25 @@ const App = () => {
   }, [isOn, play.isDisplay, play.colors.length]);
 
   const displayColors = async () => {
-    await timeout(700);
+    await timeout(1000);
     for (let i = 0; i < play.colors.length; i++) {
+      console.log("play.colors:", play.colors);
       setFlashColor(play.colors[i]);
-      await timeout(700);
+      await timeout(1000);
       setFlashColor("");
-      await timeout(700);
-
-      if (i === play.colors.length - 1) { // last color
-        const copyColors = [...play.colors];
-        setPlay({
-          ...play,
-          isDisplay: false,
-          userPlay: true,
-          userColors: copyColors.reverse(),
-        });
-      }
+      await timeout(1000);
     }
+
+    const copyColors = [...play.colors];
+    setPlay({
+      ...play,
+      isDisplay: false,
+      userPlay: true,
+      userColors: copyColors.reverse(),
+    });
   };
 
   const cardClickHandle = async (color) => {
-    
     if (!play.isDisplay && play.userPlay) {
       const copyUserColors = [...play.userColors];
       const lastColor = copyUserColors.pop(); // remove the last from the array
@@ -97,7 +101,7 @@ const App = () => {
         if (copyUserColors.length) {
           setPlay({ ...play, userColors: copyUserColors });
         } else {
-          await timeout(700);
+          await timeout(1000);
           setPlay({
             ...play,
             isDisplay: true,
@@ -107,21 +111,22 @@ const App = () => {
           });
         }
       } else {
-        await timeout(700);
+        await timeout(1000);
         setPlay({ ...initPlay, score: play.colors.length });
       }
-      await timeout(700);
+      await timeout(1000);
       setFlashColor("");
     }
   };
   const closeHandle = () => {
     setIsOn(false);
-    const highScore = localStorage.getItem("highScore");
-    if (!highScore || play.score - 1 > highScore) {
-      console.log("play.score - 1 ",play.score - 1 )
-      setHighScore(play.score - 1);
-      localStorage.setItem("highScore", JSON.stringify(play.score - 1));
-    }
+
+    // const highScore = localStorage.getItem("highScore");
+    // if (!highScore || play.score - 1 > highScore) {
+    //   console.log("play.score - 1 ",play.score - 1 )
+    //   setHighScore(play.score - 1);
+    //   localStorage.setItem("highScore", JSON.stringify(play.score - 1));
+    // }
   };
 
   return (
@@ -149,13 +154,16 @@ const App = () => {
 
         {isOn && !play.isDisplay && !play.userPlay && play.score && (
           <div className="lost">
-            <div className="score">Score:{play.score - 1}</div>
+            <div className="score">Score:{play.score}</div>
             <Button onClick={closeHandle} text="Close" />
           </div>
         )}
       </div>
       <div className="highScoreWrapper">
-      <h1>Highest:{highScore}</h1>
+        <h1>Highest:{play.highScore}</h1>
+      </div>
+      <div className="turnWrapper">
+        {isOn && <h1>{play.isDisplay ? "Computer turn" : "Your turn"}</h1>}
       </div>
     </div>
   );
