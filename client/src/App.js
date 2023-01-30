@@ -28,11 +28,10 @@ const App = () => {
     score: 0,
     userPlay: false,
     userColors: [],
-    // highScore: 0,
   };
   const [play, setPlay] = useState(initPlay);
   const [flashColor, setFlashColor] = useState("");
-  const [highScore,setHighScore]= useState(0);
+  const [highScore, setHighScore] = useState(0);
 
   const generateUserId = () => {
     if (!localStorage.getItem("userId")) {
@@ -52,7 +51,6 @@ const App = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        isOn: isOn,
         score: play.score,
         steps: play.colors,
       }),
@@ -60,7 +58,6 @@ const App = () => {
       .then((response) => response.json())
       .then((res) => {
         play.score = res.score;
-        // play.highScore = res.highScore;
         play.colors = res.colors;
       })
       .catch((error) => console.log(error));
@@ -70,7 +67,6 @@ const App = () => {
     soundObj[flashColor] && soundObj[flashColor].play();
   }, [flashColor]);
 
-  
   // const [highScore, ] = useState(() => {
   //   const highScoreFromStorage = localStorage.getItem("highScore");
   //   if (highScoreFromStorage) {
@@ -82,6 +78,17 @@ const App = () => {
   const startHandle = () => {
     setIsOn(true);
   };
+
+  useEffect(() => {
+    const userId = generateUserId();
+    fetch(`http://localhost:5000/api/status/${userId}`)
+      .then((response) => response.json())
+      .then((res) => {
+        setHighScore(res[0].highScore);
+        console.log(res[0].highScore);
+      })
+      .catch((error) => console.log(error));
+  }, [isOn]);
 
   useEffect(() => {
     if (isOn) {
@@ -158,20 +165,14 @@ const App = () => {
 
   const closeHandle = () => {
     setIsOn(false);
-    const userId = generateUserId();
-    fetch(`http://localhost:5000/api/status/${userId}`)
-      .then((response) => response.json())
-      .then((res) => {
-        console.log(res.highScore);
-      })
-      .catch((error) => console.log(error));
-
-    // const highScore = localStorage.getItem("highScore");
-    // if (!highScore || play.score - 1 > highScore) {
-    //   console.log("play.score - 1 ",play.score - 1 )
-    //   setHighScore(play.score - 1);
-    //   localStorage.setItem("highScore", JSON.stringify(play.score - 1));
-    // }
+    // const userId = generateUserId();
+    // fetch(`http://localhost:5000/api/status/${userId}`)
+    //   .then((response) => response.json())
+    //   .then((res) => {
+    //     setHighScore(res[0].highScore)
+    //     console.log(res[0].highScore);
+    //   })
+    //   .catch((error) => console.log(error));
   };
 
   return (

@@ -14,42 +14,45 @@ const fs = require("fs");
 app.use(cors());
 app.use(express.json());
 
-
-
 router.post("/status/:userId", (req, res) => {
-  const { isOn, score, steps } = req.body;
+  const {score, steps } = req.body;
   const userId = req.params.userId;
-  let userData = {};
+  let userData = [];
 
   try {
-    userData = fs.readFileSync(`${userId}.json`);
-    userData = JSON.parse(userData);
-
+    let data = fs.readFileSync(`${userId}.json`);
+    userData = JSON.parse(data);
   } catch (error) {
     console.log(`User ${userId} data not found. Creating new data...`);
   }
 
-  if (score >= userData.highScore) {
-    userData.highScore = score;
-  } else {
-    userData.highScore = highScore;
-  }
+  let newData = {
+    score,
+    steps,
+  };
 
-  userData.isOn = isOn;
-  userData.currentScore = score;
-  userData.steps = steps;
+// find the maximum value
+userData.push(newData);
+const highScore = Math.max(...userData.map(score => score.score));
+const updatedScores = userData.map(data => {
+    return { ...data, highScore };
+  });
 
-  fs.writeFileSync(`${userId}.json`, JSON.stringify(userData));
+
+  fs.writeFileSync(`${userId}.json`, JSON.stringify(updatedScores), (err) => {
+    if (err) throw err;
+    console.log(`Status data for user ${userId} appended to file`);
+  });
   res.send(userData);
 });
 
 router.get("/status/:userId", (req, res) => {
   const userId = req.params.userId;
 
-  fs.readFile(`${userId}.json`, (err, data) => {
-    if (err) throw err;
-    res.json(JSON.parse(data));
-  });
+    fs.readFile(`${userId}.json`, (err, data) => {
+      if (err) throw err;
+      res.json(JSON.parse(data));
+    });
 });
 
 app.use("/api", router);
