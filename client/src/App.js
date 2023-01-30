@@ -1,24 +1,26 @@
 //Frontend
-import { useEffect, useState } from "react";
-import "./App.scss";
+import { useCallback, useEffect, useState } from "react";
 import Button from "./components/Button";
 import ColorCard from "./components/ColorCard";
 import timeout from "./utils/util";
+import "./App.scss";
 
 import redSoundFile from "./sounds/simonSound1.mp3";
 import greenSoundFile from "./sounds/simonSound2.mp3";
 import blueSoundFile from "./sounds/simonSound3.mp3";
-import yelllowSoundFile from "./sounds/simonSound4.mp3";
+import yellowSoundFile from "./sounds/simonSound4.mp3";
 
 const App = () => {
   const [isOn, setIsOn] = useState(false);
 
   const colorList = ["red", "green", "blue", "yellow"];
 
-  const [redAudio, setRedAudio] = useState(new Audio(redSoundFile));
-  const [greenAudio, setGreenAudioo] = useState(new Audio(greenSoundFile));
-  const [blueAudio, setBlueAudio] = useState(new Audio(blueSoundFile));
-  const [yellowAudio, setYellowAudio] = useState(new Audio(yelllowSoundFile));
+  const [soundObj] = useState({
+    red: new Audio(redSoundFile),
+    green: new Audio(greenSoundFile),
+    blue: new Audio(blueSoundFile),
+    yellow: new Audio(yellowSoundFile),
+  });
 
   const initPlay = {
     isDisplay: false,
@@ -26,11 +28,49 @@ const App = () => {
     score: 0,
     userPlay: false,
     userColors: [],
-    highScore: 0,
+    // highScore: 0,
   };
   const [play, setPlay] = useState(initPlay);
   const [flashColor, setFlashColor] = useState("");
+  const [highScore,setHighScore]= useState(0);
 
+  const generateUserId = () => {
+    if (!localStorage.getItem("userId")) {
+      const id =
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15);
+      localStorage.setItem("userId", id);
+    }
+    return localStorage.getItem("userId");
+  };
+
+  const submitScore = () => {
+    const userId = generateUserId();
+    fetch(`http://localhost:5000/api/status/${userId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        isOn: isOn,
+        score: play.score,
+        steps: play.colors,
+      }),
+    })
+      .then((response) => response.json())
+      .then((res) => {
+        play.score = res.score;
+        // play.highScore = res.highScore;
+        play.colors = res.colors;
+      })
+      .catch((error) => console.log(error));
+  };
+
+  useEffect(() => {
+    soundObj[flashColor] && soundObj[flashColor].play();
+  }, [flashColor]);
+
+  
   // const [highScore, ] = useState(() => {
   //   const highScoreFromStorage = localStorage.getItem("highScore");
   //   if (highScoreFromStorage) {
@@ -42,24 +82,6 @@ const App = () => {
   const startHandle = () => {
     setIsOn(true);
   };
-
-  useEffect(() => {
-    if (!isOn) {
-      fetch("http://localhost:5000/api/status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ isOn: isOn, score: play.score }),
-      })
-        .then((response) => response.json())
-        .then((res) => {
-          play.score = res.score;
-          play.highScore = res.highScore;
-        })
-        .catch((error) => console.log(error));
-    }
-  }, [isOn]);
 
   useEffect(() => {
     if (isOn) {
@@ -79,22 +101,22 @@ const App = () => {
   }, [isOn, play.isDisplay]);
 
   useEffect(() => {
-    if (isOn && play.isDisplay && play.colors.length) {
-      displayColors();
-    }
-  }, [isOn, play.isDisplay, play.colors.length]);
+    displayColors();
+  }, [play.colors.length]);
 
-  const displayColors = async () => {
-    await timeout(1000);
+  const displayColors = useCallback(async () => {
+    if (!play.isDisplay) {
+      return;
+    }
     for (let i = 0; i < play.colors.length; i++) {
+      await timeout(1000);
       console.log("play.colors:", play.colors);
       setFlashColor(play.colors[i]);
-      setAudioByColor(play.colors[i]);
       await timeout(1000);
       setFlashColor("");
-      await timeout(1000);
     }
 
+    await timeout(1000);
     const copyColors = [...play.colors];
     setPlay({
       ...play,
@@ -102,7 +124,7 @@ const App = () => {
       userPlay: true,
       userColors: copyColors.reverse(),
     });
-  };
+  }, [play.colors.length, play.isDisplay]);
 
   const cardClickHandle = async (color) => {
     if (!play.isDisplay && play.userPlay) {
@@ -110,7 +132,6 @@ const App = () => {
       const lastColor = copyUserColors.pop(); // remove the last from the array
 
       setFlashColor(color);
-      setAudioByColor(color);
 
       if (color === lastColor) {
         if (copyUserColors.length) {
@@ -127,32 +148,23 @@ const App = () => {
         }
       } else {
         await timeout(1000);
-        setPlay({ ...initPlay, score: play.colors.length });
+        setPlay({ ...initPlay, score: play.colors.length - 1 });
+        submitScore();
       }
       await timeout(1000);
       setFlashColor("");
     }
   };
-  const setAudioByColor = (color) => {
-    switch (color) {
-      case "red":
-        redAudio.play();
-        break;
-      case "green":
-        greenAudio.play();
-        break;
-      case "blue":
-        blueAudio.play();
-        break;
-      case "yellow":
-        yellowAudio.play();
-        break;
-      default:
-        break;
-    }
-  };
+
   const closeHandle = () => {
     setIsOn(false);
+    const userId = generateUserId();
+    fetch(`http://localhost:5000/api/status/${userId}`)
+      .then((response) => response.json())
+      .then((res) => {
+        console.log(res.highScore);
+      })
+      .catch((error) => console.log(error));
 
     // const highScore = localStorage.getItem("highScore");
     // if (!highScore || play.score - 1 > highScore) {
@@ -193,7 +205,7 @@ const App = () => {
         )}
       </div>
       <div className="highScoreWrapper">
-        <h1>Highest:{play.highScore}</h1>
+        <h1>Highest:{highScore}</h1>
       </div>
       <div className="turnWrapper">
         {isOn && <h1>{play.isDisplay ? "Computer turn" : "Your turn"}</h1>}

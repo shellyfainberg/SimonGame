@@ -9,57 +9,48 @@ let isGameOn = false;
 let currentScore = 0;
 let highScore = 0;
 
-
-const fs = require('fs');
+const fs = require("fs");
 
 app.use(cors());
 app.use(express.json());
 
 
 
-app.post('/save', (req, res) => {
-    const data = req.body;
-    fs.writeFile('data.json', JSON.stringify(data), (err) => {
-      if (err) {
-        res.send('Error saving data to file.');
-      } else {
-        res.send('Data saved to file.');
-      }
-    });
-  });
+router.post("/status/:userId", (req, res) => {
+  const { isOn, score, steps } = req.body;
+  const userId = req.params.userId;
+  let userData = {};
 
-// app.get("/", (req, res) => {
-//   console.log("simons Game");
+  try {
+    userData = fs.readFileSync(`${userId}.json`);
+    userData = JSON.parse(userData);
 
-// });
+  } catch (error) {
+    console.log(`User ${userId} data not found. Creating new data...`);
+  }
 
-router.post("/status", (req, res) => {
+  if (score >= userData.highScore) {
+    userData.highScore = score;
+  } else {
+    userData.highScore = highScore;
+  }
 
-  const { isOn, score } = req.body;
-  if (score > highScore) highScore = score;
-  isGameOn = isOn;
-  currentScore = score;
-  const response = { score: score, highScore: highScore, isOn: isOn };
-  console.log(response)
+  userData.isOn = isOn;
+  userData.currentScore = score;
+  userData.steps = steps;
 
-  fs.writeFile('status.json', JSON.stringify(response), (err) => {
+  fs.writeFileSync(`${userId}.json`, JSON.stringify(userData));
+  res.send(userData);
+});
+
+router.get("/status/:userId", (req, res) => {
+  const userId = req.params.userId;
+
+  fs.readFile(`${userId}.json`, (err, data) => {
     if (err) throw err;
-    console.log('status data written to file');
+    res.json(JSON.parse(data));
   });
-  res.send(response);
 });
-
-router.get("/status", (req, res) => {
-  res.json(isGameOn);
-});
-
-router.get("/score", (req, res) => {
-  res.json(score);
-});
-
-router.get("/highScore", (req, res) => {
-    res.json(score);
-  });
 
 app.use("/api", router);
 
