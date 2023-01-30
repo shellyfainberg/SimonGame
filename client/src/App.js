@@ -5,9 +5,21 @@ import Button from "./components/Button";
 import ColorCard from "./components/ColorCard";
 import timeout from "./utils/util";
 
+import redSoundFile from "./sounds/simonSound1.mp3";
+import greenSoundFile from "./sounds/simonSound2.mp3";
+import blueSoundFile from "./sounds/simonSound3.mp3";
+import yelllowSoundFile from "./sounds/simonSound4.mp3";
+
 const App = () => {
+
   const [isOn, setIsOn] = useState(false);
+
   const colorList = ["red", "green", "blue", "yellow"];
+
+  const [redAudio, setRedAudio] = useState(new Audio(redSoundFile));
+  const [greenAudio, setGreenAudioo] = useState(new Audio(greenSoundFile));
+  const [blueAudio, setBlueAudio] = useState(new Audio(blueSoundFile));
+  const [yellowAudio, setYellowAudio] = useState(new Audio(yelllowSoundFile));
 
   const initPlay = {
     isDisplay: false,
@@ -76,6 +88,7 @@ const App = () => {
     for (let i = 0; i < play.colors.length; i++) {
       console.log("play.colors:", play.colors);
       setFlashColor(play.colors[i]);
+      setAudioByColor(play.colors[i]);
       await timeout(1000);
       setFlashColor("");
       await timeout(1000);
@@ -96,6 +109,7 @@ const App = () => {
       const lastColor = copyUserColors.pop(); // remove the last from the array
 
       setFlashColor(color);
+      setAudioByColor(color);
 
       if (color === lastColor) {
         if (copyUserColors.length) {
@@ -116,6 +130,24 @@ const App = () => {
       }
       await timeout(1000);
       setFlashColor("");
+    }
+  };
+  const setAudioByColor = (color) => {
+    switch (color) {
+      case "red":
+        redAudio.play();
+        break;
+      case "green":
+        greenAudio.play();
+        break;
+      case "blue":
+        blueAudio.play();
+        break;
+      case "yellow":
+        yellowAudio.play();
+        break;
+      default:
+        break;
     }
   };
   const closeHandle = () => {
