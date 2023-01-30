@@ -8,7 +8,7 @@
 }
 .simon {
   color: white;
-  font-size: 50px;
+  font-size: 60px;
   font-family: "Bebas Neue";
   margin-bottom: 10px;
 }
@@ -45,7 +45,7 @@
 
 .score {
   font-family: "Bebas Neue";
-  font-size: 50px;
+  font-size: 60px;
   color: white;
 }
 
@@ -65,7 +65,6 @@
   -webkit-box-shadow: 0px 0px 124px 18px rgba(255, 255, 255, 0.96);
   -moz-box-shadow: 0px 0px 124px 18px rgba(255, 255, 255, 0.96);
   box-shadow: 0px 0px 124px 18px rgba(255, 255, 255, 0.96);
-
 }
 
 .red {
@@ -99,12 +98,17 @@
 
 .button {
   background-color: #373e3e;
+  box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
   color: white;
-  width: 60px;
+  width: 70px;
   height: 30px;
-  font-size: 15px;
-  border-radius: 7px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 15px;
   cursor: pointer;
+  &:hover {
+      background-color: rgb(117, 118, 118);
+  }
 }
 
 .highScoreWrapper {
@@ -119,4 +123,15 @@
   left: 75px;
   top: 20px;
   color: white;
+}
+.quit {
+  position: absolute;
+  bottom: 50px;
+  left: 70px;
+  .button {
+    width: 100px;
+    height: 50px;
+    font-size: 24px;
+    border-radius: 24px;
+  }
 }

@@ -1,7 +1,8 @@
 //Frontend
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import Button from "./components/Button";
 import ColorCard from "./components/ColorCard";
+import Welcome from "./components/Welcome";
 import timeout from "./utils/util";
 import "./App.scss";
 
@@ -11,6 +12,7 @@ import blueSoundFile from "./sounds/simonSound3.mp3";
 import yellowSoundFile from "./sounds/simonSound4.mp3";
 
 const App = () => {
+  const [startGame, setStartGame] = useState(false);
   const [isOn, setIsOn] = useState(false);
 
   const colorList = ["red", "green", "blue", "yellow"];
@@ -66,14 +68,6 @@ const App = () => {
   useEffect(() => {
     soundObj[flashColor] && soundObj[flashColor].play();
   }, [flashColor]);
-
-  // const [highScore, ] = useState(() => {
-  //   const highScoreFromStorage = localStorage.getItem("highScore");
-  //   if (highScoreFromStorage) {
-  //     return highScoreFromStorage;
-  //   }
-  //   return 0;
-  // });
 
   const startHandle = () => {
     setIsOn(true);
@@ -165,53 +159,62 @@ const App = () => {
 
   const closeHandle = () => {
     setIsOn(false);
-    // const userId = generateUserId();
-    // fetch(`http://localhost:5000/api/status/${userId}`)
-    //   .then((response) => response.json())
-    //   .then((res) => {
-    //     setHighScore(res[0].highScore)
-    //     console.log(res[0].highScore);
-    //   })
-    //   .catch((error) => console.log(error));
   };
 
   return (
-    <div className="App">
-      <div className="cardWarpper">
-        {colorList &&
-          colorList.map((color, index) => (
-            <ColorCard
-              key={index}
-              color={color}
-              flash={flashColor === color}
-              onClick={() => {
-                cardClickHandle(color);
-              }}
-            ></ColorCard>
-          ))}
-      </div>
+    <Fragment>
+      {!startGame && (
+        <Welcome onClick={() => setStartGame((prevState) => !prevState)} />
+      )}
 
-      <div className="centerWrapper">
-        {!isOn && <h1 className="simon">SIMON</h1>}
-        {!isOn && !play.score && <Button onClick={startHandle} text="Start" />}
-        {isOn && (play.isDisplay || play.userPlay) && (
-          <div className="score">{play.score}</div>
-        )}
-
-        {isOn && !play.isDisplay && !play.userPlay && play.score && (
-          <div className="lost">
-            <div className="score">Score:{play.score}</div>
-            <Button onClick={closeHandle} text="Close" />
+      {startGame && (
+        <div className="App">
+          <div className="cardWarpper">
+            {colorList &&
+              colorList.map((color, index) => (
+                <ColorCard
+                  key={index}
+                  color={color}
+                  flash={flashColor === color}
+                  onClick={() => {
+                    cardClickHandle(color);
+                  }}
+                ></ColorCard>
+              ))}
           </div>
-        )}
-      </div>
-      <div className="highScoreWrapper">
-        <h1>Highest:{highScore}</h1>
-      </div>
-      <div className="turnWrapper">
-        {isOn && <h1>{play.isDisplay ? "Computer turn" : "Your turn"}</h1>}
-      </div>
-    </div>
+
+          <div className="centerWrapper">
+            {!isOn && <h1 className="simon">SIMON</h1>}
+            {!isOn && !play.score && (
+              <Button onClick={startHandle} text="START" />
+            )}
+            {isOn && (play.isDisplay || play.userPlay) && (
+              <div className="score">{play.score}</div>
+            )}
+
+            {isOn && !play.isDisplay && !play.userPlay && play.score && (
+              <div className="lost">
+                <div className="score">Score:{play.score}</div>
+                <Button onClick={closeHandle} text="CLOSE" />
+              </div>
+            )}
+          </div>
+          <div className="highScoreWrapper">
+            <h1>Highest:{highScore}</h1>
+          </div>
+          <div className="turnWrapper">
+            {isOn && <h1>{play.isDisplay ? "Computer Turn" : "Your Turn"}</h1>}
+          </div>
+          <div className="quit">
+            <Button
+              className="button"
+              text="QUIT"
+              onClick={() => setStartGame((prevState) => !prevState)}
+            ></Button>
+          </div>
+        </div>
+      )}
+    </Fragment>
   );
 };
 
