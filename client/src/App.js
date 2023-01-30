@@ -11,7 +11,6 @@ import blueSoundFile from "./sounds/simonSound3.mp3";
 import yelllowSoundFile from "./sounds/simonSound4.mp3";
 
 const App = () => {
-
   const [isOn, setIsOn] = useState(false);
 
   const colorList = ["red", "green", "blue", "yellow"];
@@ -45,19 +44,21 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/status", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ isOn: isOn, score: play.score }),
-    })
-      .then((response) => response.json())
-      .then((res) => {
-        play.score = res.score;
-        play.highScore = res.highScore;
+    if (!isOn) {
+      fetch("http://localhost:5000/api/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isOn: isOn, score: play.score }),
       })
-      .catch((error) => console.log(error));
+        .then((response) => response.json())
+        .then((res) => {
+          play.score = res.score;
+          play.highScore = res.highScore;
+        })
+        .catch((error) => console.log(error));
+    }
   }, [isOn]);
 
   useEffect(() => {
